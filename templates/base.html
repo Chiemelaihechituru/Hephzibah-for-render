@@ -1,0 +1,182 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}{% if page_title %}{{ page_title }} · {% endif %}{{ BUSINESS_NAME }}{% endblock %}</title>
+{% block meta_description %}<meta name="description" content="{{ BUSINESS_NAME }} — high-quality leather shoes, slippers, bags, luxury fabrics, Ankara, lace and jewelry for men and women. Based in {{ BUSINESS_ADDRESS }}.">{% endblock %}
+<link rel="canonical" href="{{ request.build_absolute_uri }}">
+<link rel="icon" href="{% static 'images/logo.png' %}">
+
+{% block og_tags %}
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="{{ BUSINESS_NAME }}">
+<meta property="og:title" content="{% if page_title %}{{ page_title }} · {% endif %}{{ BUSINESS_NAME }}">
+<meta property="og:description" content="High-quality leather shoes, slippers, bags, luxury fabrics, Ankara, lace and jewelry for men and women.">
+<meta property="og:url" content="{{ request.build_absolute_uri }}">
+<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'images/logo.png' %}">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{% if page_title %}{{ page_title }} · {% endif %}{{ BUSINESS_NAME }}">
+<meta name="twitter:description" content="High-quality leather shoes, slippers, bags, luxury fabrics, Ankara, lace and jewelry for men and women.">
+<meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'images/logo.png' %}">
+{% endblock %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          ink: '#14110F',
+          gold: '#B08D3F',
+          goldlight: '#D8B876',
+          parchment: '#F3EEE2',
+          card: '#FBF9F4',
+          oxblood: '#6B1E23',
+        },
+        fontFamily: {
+          display: ['Cinzel', 'serif'],
+          body: ['Jost', 'sans-serif'],
+        },
+      }
+    }
+  }
+</script>
+<link rel="stylesheet" href="{% static 'css/style.css' %}">
+{% block extra_head %}{% endblock %}
+</head>
+<body class="bg-parchment text-ink font-body antialiased">
+
+<a href="#main-content" class="skip-link">Skip to content</a>
+
+<!-- ============ HEADER ============ -->
+<header class="sticky top-0 z-40 bg-ink text-parchment border-b border-gold/40">
+  <div class="hairline-gold"></div>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-20 gap-4">
+
+      <a href="{% url 'store:home' %}" class="flex items-center gap-3 shrink-0 group">
+        <img src="{% static 'images/logo.png' %}" alt="{{ BUSINESS_NAME }} crest logo"
+             class="h-14 w-14 object-contain transition-transform duration-300 group-hover:scale-105">
+        <span class="hidden sm:flex flex-col leading-tight">
+          <span class="font-display tracking-wide text-lg text-goldlight">HEPHZIBAH</span>
+          <span class="text-[11px] tracking-[0.25em] uppercase text-parchment/70">Wears &amp; Collections</span>
+        </span>
+      </a>
+
+      <nav class="hidden lg:flex items-center gap-7 font-body text-sm tracking-wide">
+        <a href="{% url 'store:home' %}" class="nav-link">Home</a>
+        {% for cat in NAV_CATEGORIES %}
+          <a href="{% url 'store:category_detail' cat.slug %}" class="nav-link">{{ cat.name }}</a>
+        {% endfor %}
+        <a href="{% url 'store:all_products' %}" class="nav-link">All Products</a>
+      </nav>
+
+      <div class="flex items-center gap-3">
+        <form action="{% url 'store:search' %}" method="get" class="hidden md:flex items-center relative">
+          <input type="search" name="q" value="{{ search_query|default:'' }}" placeholder="Search products…"
+                 class="bg-parchment/10 border border-gold/40 focus:border-gold rounded-full py-2 pl-4 pr-10 text-sm text-parchment placeholder-parchment/50 outline-none w-40 lg:w-56 transition-all focus:w-64">
+          <button type="submit" aria-label="Search" class="absolute right-3 text-gold">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </button>
+        </form>
+
+        <a href="{% url 'store:wholesale' %}" class="hidden md:inline-flex btn-gold-outline text-xs">Wholesale Partner</a>
+
+        <button id="mobile-menu-btn" class="lg:hidden text-parchment p-2" aria-label="Open menu">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile menu -->
+  <div id="mobile-menu" class="hidden lg:hidden bg-ink border-t border-gold/30 px-4 pb-6">
+    <form action="{% url 'store:search' %}" method="get" class="flex items-center relative mt-4 mb-2">
+      <input type="search" name="q" placeholder="Search products…"
+             class="w-full bg-parchment/10 border border-gold/40 rounded-full py-2 pl-4 pr-10 text-sm text-parchment placeholder-parchment/50 outline-none">
+      <button type="submit" aria-label="Search" class="absolute right-3 text-gold">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+    </form>
+    <nav class="flex flex-col gap-1 py-2 text-sm">
+      <a href="{% url 'store:home' %}" class="nav-link-mobile">Home</a>
+      {% for cat in NAV_CATEGORIES %}
+        <a href="{% url 'store:category_detail' cat.slug %}" class="nav-link-mobile">{{ cat.name }}</a>
+      {% endfor %}
+      <a href="{% url 'store:all_products' %}" class="nav-link-mobile">All Products</a>
+      <a href="{% url 'store:wholesale' %}" class="nav-link-mobile text-goldlight">Become a Wholesale Partner</a>
+    </nav>
+  </div>
+</header>
+
+{% if messages %}
+<div class="max-w-3xl mx-auto px-4 mt-4">
+  {% for message in messages %}
+    <div class="rounded-lg border border-gold/40 bg-card px-4 py-3 text-sm text-ink mb-2 shadow-sm">{{ message }}</div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<main id="main-content">
+{% block content %}{% endblock %}
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="bg-ink text-parchment/80 mt-24">
+  <div class="hairline-gold"></div>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 grid grid-cols-1 md:grid-cols-3 gap-10">
+    <div>
+      <div class="flex items-center gap-3 mb-4">
+        <img src="{% static 'images/logo.png' %}" alt="" class="h-12 w-12 object-contain">
+        <span class="font-display text-goldlight tracking-wide">HEPHZIBAH</span>
+      </div>
+      <p class="text-sm leading-relaxed text-parchment/60">
+        High-quality leather shoes, slippers and bags, men's luxury fabrics,
+        Ankara, lace and jewelry — for men and women alike.
+      </p>
+    </div>
+    <div>
+      <h3 class="font-display text-sm tracking-[0.2em] text-goldlight uppercase mb-4">Shop</h3>
+      <ul class="space-y-2 text-sm text-parchment/70">
+        {% for cat in NAV_CATEGORIES %}
+          <li><a href="{% url 'store:category_detail' cat.slug %}" class="hover:text-goldlight transition-colors">{{ cat.name }}</a></li>
+        {% endfor %}
+        <li><a href="{% url 'store:wholesale' %}" class="hover:text-goldlight transition-colors">Become a Wholesale Partner</a></li>
+      </ul>
+    </div>
+    <div>
+      <h3 class="font-display text-sm tracking-[0.2em] text-goldlight uppercase mb-4">Visit &amp; Contact</h3>
+      <ul class="space-y-3 text-sm text-parchment/70">
+        <li>{{ BUSINESS_ADDRESS }}</li>
+        <li><a href="tel:{{ BUSINESS_PHONE_DISPLAY }}" class="hover:text-goldlight transition-colors">{{ BUSINESS_PHONE_DISPLAY }}</a></li>
+        <li>
+          <a href="{{ GENERAL_WHATSAPP_LINK }}" target="_blank" rel="noopener" class="inline-flex items-center gap-2 hover:text-goldlight transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-4 w-4 fill-current"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.472-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.148-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.372-.01-.571-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12.001 2C6.478 2 2 6.477 2 12c0 1.89.525 3.66 1.436 5.168L2 22l4.963-1.404A9.953 9.953 0 0012 22c5.523 0 10-4.477 10-10S17.524 2 12.001 2zm0 18.18a8.15 8.15 0 01-4.166-1.14l-.299-.177-3.087.873.85-3.036-.196-.312A8.147 8.147 0 013.82 12c0-4.522 3.658-8.18 8.18-8.18 4.523 0 8.18 3.658 8.18 8.18 0 4.523-3.657 8.18-8.18 8.18z"/></svg>
+            WhatsApp us
+          </a>
+        </li>
+        {% if BUSINESS_EMAIL %}<li><a href="mailto:{{ BUSINESS_EMAIL }}" class="hover:text-goldlight transition-colors">{{ BUSINESS_EMAIL }}</a></li>{% endif %}
+      </ul>
+    </div>
+  </div>
+  <div class="border-t border-gold/20 py-6 text-center text-xs text-parchment/40 tracking-wide">
+    &copy; {% now "Y" %} {{ BUSINESS_NAME }}. All rights reserved.
+  </div>
+</footer>
+
+{% block whatsapp_fab %}
+<!-- Floating WhatsApp button -->
+<a href="{{ GENERAL_WHATSAPP_LINK }}" target="_blank" rel="noopener" aria-label="Chat with us on WhatsApp"
+   class="whatsapp-fab">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="h-7 w-7 fill-current"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.472-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.148-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.372-.01-.571-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12.001 2C6.478 2 2 6.477 2 12c0 1.89.525 3.66 1.436 5.168L2 22l4.963-1.404A9.953 9.953 0 0012 22c5.523 0 10-4.477 10-10S17.524 2 12.001 2zm0 18.18a8.15 8.15 0 01-4.166-1.14l-.299-.177-3.087.873.85-3.036-.196-.312A8.147 8.147 0 013.82 12c0-4.522 3.658-8.18 8.18-8.18 4.523 0 8.18 3.658 8.18 8.18 0 4.523-3.657 8.18-8.18 8.18z"/></svg>
+</a>
+{% endblock %}
+
+<script src="{% static 'js/main.js' %}"></script>
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>
