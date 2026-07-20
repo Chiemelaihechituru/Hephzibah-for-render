@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<section class="bg-ink text-parchment">
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
+    <div class="seal mx-auto mb-6" style="--seal-size:3.5rem;"><span class="seal-text">W</span></div>
+    <p class="text-xs tracking-[0.3em] uppercase text-goldlight/80 mb-2">For Boutique Owners</p>
+    <h1 class="font-display text-3xl sm:text-4xl mb-4">Become a Wholesale Partner</h1>
+    <p class="max-w-xl mx-auto text-parchment/70 leading-relaxed">
+      Stock your shop with our leather shoes, bags, fabrics and jewelry at
+      wholesale prices. Tell us about your business below and our team will
+      reach out with pricing and minimum order details.
+    </p>
+  </div>
+  <div class="hairline-gold"></div>
+</section>
+
+<section class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+  <div class="ledger-panel p-6 sm:p-8">
+    <form method="post">
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+        <div class="text-oxblood text-sm mb-4">{{ form.non_field_errors }}</div>
+      {% endif %}
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
+        <div class="form-field">
+          <label for="{{ form.business_name.id_for_label }}">{{ form.business_name.label }}</label>
+          {{ form.business_name }}
+          {{ form.business_name.errors }}
+        </div>
+        <div class="form-field">
+          <label for="{{ form.contact_name.id_for_label }}">{{ form.contact_name.label }}</label>
+          {{ form.contact_name }}
+          {{ form.contact_name.errors }}
+        </div>
+        <div class="form-field">
+          <label for="{{ form.location.id_for_label }}">{{ form.location.label }}</label>
+          {{ form.location }}
+          {{ form.location.errors }}
+        </div>
+        <div class="form-field">
+          <label for="{{ form.phone_number.id_for_label }}">{{ form.phone_number.label }}</label>
+          {{ form.phone_number }}
+          {{ form.phone_number.errors }}
+        </div>
+      </div>
+
+      <div class="form-field">
+        <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+        {{ form.email }}
+        {{ form.email.errors }}
+      </div>
+
+      <div class="form-field">
+        <label for="{{ form.estimated_monthly_quantity.id_for_label }}">{{ form.estimated_monthly_quantity.label }}</label>
+        {{ form.estimated_monthly_quantity }}
+        {{ form.estimated_monthly_quantity.errors }}
+      </div>
+
+      <div class="form-field">
+        <label for="{{ form.message.id_for_label }}">Message (optional)</label>
+        {{ form.message }}
+        {{ form.message.errors }}
+      </div>
+
+      <button type="submit" class="btn-gold w-full mt-2">Send Wholesale Enquiry</button>
+      <p class="text-xs text-ink/50 mt-3 text-center">
+        We'll save your enquiry, then take you to WhatsApp so our team can
+        reply personally.
+      </p>
+    </form>
+  </div>
+
+  <div class="text-center mt-10">
+    <p class="text-sm text-ink/60 mb-3">Prefer to talk first?</p>
+    <a href="{{ GENERAL_WHATSAPP_LINK }}" target="_blank" rel="noopener" class="btn-gold-outline">Chat With Our Team</a>
+  </div>
+</section>
+{% endblock %}

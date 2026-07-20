@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% load static store_extras %}
+
+{% block extra_head %}
+<script type="application/ld+json">{{ business_jsonld|safe }}</script>
+{% endblock %}
+
+{% block content %}
+
+<!-- ============ HERO ============ -->
+<section class="bg-ink text-parchment relative overflow-hidden">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center flex flex-col items-center">
+    <div class="hero-crest-frame mb-8">
+      <img src="{% static 'images/logo.png' %}" alt="{{ BUSINESS_NAME }} crest" class="h-32 w-32 sm:h-40 sm:w-40 object-contain">
+    </div>
+    <p class="text-[11px] sm:text-xs tracking-[0.4em] uppercase text-goldlight/80 mb-3">Est. in Abuja, Nigeria</p>
+    <h1 class="font-display text-4xl sm:text-5xl tracking-wide text-parchment mb-3">HEPHZIBAH</h1>
+    <p class="font-display text-sm sm:text-base tracking-[0.3em] uppercase text-goldlight mb-6">Wears &amp; Collections</p>
+    <p class="max-w-xl text-parchment/70 leading-relaxed mb-10">
+      High-quality leather shoes, slippers and bags, men's luxury fabrics,
+      Ankara, lace and jewelry — every piece chosen for men and women who
+      dress with intention.
+    </p>
+    <div class="flex flex-wrap items-center justify-center gap-4">
+      <a href="{% url 'store:all_products' %}" class="btn-gold">Shop the Collection</a>
+      <a href="{% url 'store:wholesale' %}" class="btn-gold-outline">Become a Wholesale Partner</a>
+    </div>
+  </div>
+  <div class="hairline-gold"></div>
+</section>
+
+<!-- ============ CATEGORY SEALS ============ -->
+<section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-1 py-14">
+  <div class="text-center mb-10">
+    <p class="text-xs tracking-[0.3em] uppercase text-gold mb-1">Explore</p>
+    <h2 class="font-display text-2xl sm:text-3xl text-ink">Shop By Category</h2>
+  </div>
+  <div class="flex flex-wrap justify-center gap-8 sm:gap-12">
+    {% for cat in categories %}
+      {% with img=cat.slug|category_image %}
+      <a href="{% url 'store:category_detail' cat.slug %}" class="flex flex-col items-center gap-3 group">
+        <span class="seal transition-transform group-hover:-translate-y-1{% if img %} seal--photo{% endif %}" style="--seal-size:4.5rem;">
+          {% if img %}
+            <span class="seal-photo-frame">
+              <img src="{{ img }}" alt="{{ cat.name }} category" width="120" height="120" loading="lazy">
+            </span>
+          {% else %}
+            <span class="seal-text">{{ cat.name|slice:":1" }}</span>
+          {% endif %}
+        </span>
+        <span class="font-display text-xs sm:text-sm tracking-wide text-ink group-hover:text-gold transition-colors">{{ cat.name }}</span>
+      </a>
+      {% endwith %}
+    {% endfor %}
+  </div>
+</section>
+
+<!-- ============ FEATURED / SIGNATURE PIECES ============ -->
+{% if featured_products %}
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+  <div class="flex items-end justify-between mb-8">
+    <div>
+      <p class="text-xs tracking-[0.3em] uppercase text-gold mb-1">Handpicked</p>
+      <h2 class="font-display text-2xl sm:text-3xl text-ink">Signature Pieces</h2>
+    </div>
+    <a href="{% url 'store:all_products' %}" class="hidden sm:inline-flex btn-ink-outline text-sm">View All</a>
+  </div>
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-5 sm:gap-7">
+    {% for product in featured_products %}
+      {% include "store/_product_card.html" %}
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<!-- ============ WHY US STRIP ============ -->
+<section class="bg-card border-y border-gold/20">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14 grid grid-cols-1 sm:grid-cols-3 gap-10 text-center">
+    <div>
+      <div class="seal mx-auto mb-4" style="--seal-size:3rem;"><span class="seal-text">✓</span></div>
+      <h3 class="font-display text-sm tracking-wide text-ink mb-2">Handpicked Quality</h3>
+      <p class="text-sm text-ink/60 leading-relaxed">Genuine leather, real Ankara and lace, sourced with care for lasting wear.</p>
+    </div>
+    <div>
+      <div class="seal mx-auto mb-4" style="--seal-size:3rem;"><span class="seal-text">💬</span></div>
+      <h3 class="font-display text-sm tracking-wide text-ink mb-2">Order on WhatsApp</h3>
+      <p class="text-sm text-ink/60 leading-relaxed">Pick a piece, send your details, and pay directly through WhatsApp — simple and personal.</p>
+    </div>
+    <div>
+      <div class="seal mx-auto mb-4" style="--seal-size:3rem;"><span class="seal-text">📦</span></div>
+      <h3 class="font-display text-sm tracking-wide text-ink mb-2">Wholesale Bundles</h3>
+      <p class="text-sm text-ink/60 leading-relaxed">Boutique owner? Enquire about bulk pricing and grow your rack with us.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============ NEW ARRIVALS ============ -->
+{% if new_arrivals %}
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+  <div class="flex items-end justify-between mb-8">
+    <div>
+      <p class="text-xs tracking-[0.3em] uppercase text-gold mb-1">Just In</p>
+      <h2 class="font-display text-2xl sm:text-3xl text-ink">New Arrivals</h2>
+    </div>
+    <a href="{% url 'store:all_products' %}" class="hidden sm:inline-flex btn-ink-outline text-sm">View All</a>
+  </div>
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-5 sm:gap-7">
+    {% for product in new_arrivals %}
+      {% include "store/_product_card.html" %}
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<!-- ============ WHOLESALE CTA BANNER ============ -->
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+  <div class="ledger-panel bg-ink text-parchment px-8 py-12 text-center" style="background:#14110F;">
+    <p class="text-xs tracking-[0.3em] uppercase text-goldlight mb-3">For Boutique Owners</p>
+    <h2 class="font-display text-2xl sm:text-3xl mb-4">Stock Your Shelves With Hephzibah</h2>
+    <p class="max-w-xl mx-auto text-parchment/70 mb-8">
+      Tell us your business, your location and how much you order monthly —
+      our team will reach out with wholesale pricing.
+    </p>
+    <a href="{% url 'store:wholesale' %}" class="btn-gold">Enquire About Wholesale</a>
+  </div>
+</section>
+
+{% endblock %}

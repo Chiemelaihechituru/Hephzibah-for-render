@@ -1,0 +1,38 @@
+{% load static store_extras %}
+<a href="{{ product.get_absolute_url }}" class="product-card group flex flex-col">
+  <div class="product-image-wrap">
+    {% if product.category.name == "New Arrivals" %}
+      <span class="badge-new">New</span>
+    {% endif %}
+    {% if product.is_sold_out %}
+      <span class="stamp-sold">Sold Out</span>
+    {% endif %}
+    {% with image=product.main_image %}
+      {% if image %}
+        <img src="{{ image.url }}" alt="{{ product.name }}" loading="lazy">
+      {% else %}
+        <div class="w-full h-full flex items-center justify-center text-ink/30 font-display text-sm">
+          Photo coming soon
+        </div>
+      {% endif %}
+    {% endwith %}
+  </div>
+  <div class="p-4 flex flex-col gap-2 flex-1">
+    <p class="text-[11px] tracking-[0.15em] uppercase text-gold/80">{{ product.category.name }}</p>
+    <h3 class="font-display text-base leading-snug text-ink group-hover:text-gold transition-colors">
+      {{ product.name }}
+    </h3>
+    {% if product.stock_note %}
+      <p class="text-xs text-oxblood">{{ product.stock_note }}</p>
+    {% endif %}
+    <div class="mt-auto flex items-center justify-between pt-2">
+      <span class="price-pill">
+        {{ product.price|naira }}
+        {% if product.is_on_sale %}
+          <span class="line-through text-ink/40 ml-1 font-body text-xs">{{ product.compare_at_price|naira }}</span>
+        {% endif %}
+      </span>
+      <span class="text-xs text-ink/50 group-hover:text-gold transition-colors">View →</span>
+    </div>
+  </div>
+</a>

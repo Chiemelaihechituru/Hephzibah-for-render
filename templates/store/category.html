@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<section class="bg-ink text-parchment">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-14 text-center">
+    <p class="text-xs tracking-[0.3em] uppercase text-goldlight/80 mb-2">
+      {% if search_query %}Search{% elif category %}Category{% else %}Browse{% endif %}
+    </p>
+    <h1 class="font-display text-3xl sm:text-4xl">{{ page_title }}</h1>
+    {% if category and category.description %}
+      <p class="max-w-xl mx-auto text-parchment/60 mt-4">{{ category.description }}</p>
+    {% endif %}
+  </div>
+  <div class="hairline-gold"></div>
+</section>
+
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
+
+  <form method="get" class="max-w-md mx-auto mb-10 flex items-center relative">
+    {% if gender %}<input type="hidden" name="gender" value="{{ gender }}">{% endif %}
+    {% if in_stock_only %}<input type="hidden" name="in_stock" value="1">{% endif %}
+    {% if sort and sort != 'newest' %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
+    <input type="search" name="q" value="{{ search_query|default:'' }}"
+           placeholder="Search {% if category %}in {{ category.name }}…{% else %}products…{% endif %}"
+           class="w-full border border-ink/20 focus:border-gold rounded-full py-3 pl-5 pr-12 outline-none">
+    <button type="submit" aria-label="Search" class="absolute right-4 text-gold">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </button>
+  </form>
+
+  {% if page_obj.paginator.count %}
+    <!-- No-JS fallback: plain inline controls, identical in function to the sheets below -->
+    <noscript>
+      <form method="get" class="flex flex-wrap items-center gap-3 mb-4 border-b border-ink/10 pb-3">
+        {% if search_query is not None %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
+        <div class="flex items-center gap-1">
+          <label for="id-gender-ns" class="text-[9px] uppercase tracking-wide text-ink/50">For</label>
+          <select name="gender" id="id-gender-ns" class="border border-ink/20 rounded-full px-2 py-0.5 text-[11px] bg-card outline-none">
+            {% for value, label in gender_filters %}
+              <option value="{{ value }}" {% if value == gender %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <label class="flex items-center gap-1 text-[11px] text-ink/70">
+          <input type="checkbox" name="in_stock" value="1" {% if in_stock_only %}checked{% endif %} class="accent-gold h-3 w-3">
+          In stock only
+        </label>
+        <div class="flex items-center gap-1">
+          <label for="id-sort-ns" class="text-[9px] uppercase tracking-wide text-ink/50">Sort</label>
+          <select name="sort" id="id-sort-ns" class="border border-ink/20 rounded-full px-2 py-0.5 text-[11px] bg-card outline-none">
+            {% for value, field, label in sort_options %}
+              <option value="{{ value }}" {% if value == sort %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <button type="submit" class="btn-ink-outline text-xs">Apply</button>
+      </form>
+    </noscript>
+
+    <!-- Floating "Sort by / Filter" pill, Jumia-style — bottom-center, below the WhatsApp button -->
+    <div id="sort-filter-bar" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-30">
+      <div class="flex items-stretch bg-ink text-parchment rounded-full shadow-xl divide-x divide-parchment/20 overflow-hidden text-sm">
+        <button type="button" id="sort-trigger" class="flex items-center gap-2 pl-5 pr-6 py-3 whitespace-nowrap active:bg-white/10 transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 15l5 5 5-5M7 9l5-5 5 5"/></svg>
+          Sort by
+        </button>
+        <button type="button" id="filter-trigger" class="flex items-center gap-2 pl-6 pr-5 py-3 whitespace-nowrap active:bg-white/10 transition-colors">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="9" cy="6" r="1.6" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="7" cy="18" r="1.6" fill="currentColor" stroke="none"/></svg>
+          Filter
+        </button>
+      </div>
+    </div>
+
+    <!-- Dimmed backdrop shared by both sheets -->
+    <div id="sheet-overlay" class="hidden fixed inset-0 bg-ink/50 z-[45]"></div>
+
+    <!-- "Sort by" bottom sheet -->
+    <div id="sort-sheet" class="bottom-sheet translate-y-full transition-transform duration-300 ease-out fixed inset-x-0 bottom-0 z-50 bg-card rounded-t-2xl shadow-2xl max-h-[75vh] overflow-y-auto">
+      <div class="sticky top-0 bg-card flex items-center justify-between px-6 py-4 border-b border-ink/10">
+        <h3 class="font-display text-base text-ink">Sort by</h3>
+        <button type="button" class="sheet-close text-ink/40 text-2xl leading-none px-2" aria-label="Close">&times;</button>
+      </div>
+      <form method="get" class="px-6 pb-6">
+        {% if search_query is not None %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
+        {% if gender %}<input type="hidden" name="gender" value="{{ gender }}">{% endif %}
+        {% if in_stock_only %}<input type="hidden" name="in_stock" value="1">{% endif %}
+        <div class="divide-y divide-ink/10">
+          {% for value, field, label in sort_options %}
+            <label class="flex items-center justify-between py-3 cursor-pointer">
+              <span class="text-sm {% if value == sort %}text-ink font-medium{% else %}text-ink/70{% endif %}">{{ label }}</span>
+              <input type="radio" name="sort" value="{{ value }}" {% if value == sort %}checked{% endif %} class="accent-gold h-4 w-4">
+            </label>
+          {% endfor %}
+        </div>
+        <button type="submit" class="btn-gold w-full mt-5">Apply</button>
+      </form>
+    </div>
+
+    <!-- "Filter" bottom sheet -->
+    <div id="filter-sheet" class="bottom-sheet translate-y-full transition-transform duration-300 ease-out fixed inset-x-0 bottom-0 z-50 bg-card rounded-t-2xl shadow-2xl max-h-[75vh] overflow-y-auto">
+      <div class="sticky top-0 bg-card flex items-center justify-between px-6 py-4 border-b border-ink/10">
+        <h3 class="font-display text-base text-ink">Filter</h3>
+        <button type="button" class="sheet-close text-ink/40 text-2xl leading-none px-2" aria-label="Close">&times;</button>
+      </div>
+      <form method="get" class="px-6 pb-6">
+        {% if search_query is not None %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
+        {% if sort and sort != 'newest' %}<input type="hidden" name="sort" value="{{ sort }}">{% endif %}
+        <p class="text-[11px] uppercase tracking-wide text-ink/50 pt-4 pb-1">For</p>
+        <div class="divide-y divide-ink/10">
+          {% for value, label in gender_filters %}
+            <label class="flex items-center justify-between py-3 cursor-pointer">
+              <span class="text-sm {% if value == gender %}text-ink font-medium{% else %}text-ink/70{% endif %}">{{ label }}</span>
+              <input type="radio" name="gender" value="{{ value }}" {% if value == gender %}checked{% endif %} class="accent-gold h-4 w-4">
+            </label>
+          {% endfor %}
+        </div>
+        <label class="flex items-center justify-between py-3 border-t border-ink/10 mt-1 cursor-pointer">
+          <span class="text-sm text-ink/70">In stock only</span>
+          <input type="checkbox" name="in_stock" value="1" {% if in_stock_only %}checked{% endif %} class="accent-gold h-4 w-4">
+        </label>
+        <button type="submit" class="btn-gold w-full mt-5">Apply</button>
+      </form>
+    </div>
+
+    <p class="text-xs text-ink/50 mb-6">
+      Showing {{ page_obj.start_index }}–{{ page_obj.end_index }} of {{ page_obj.paginator.count }} product{{ page_obj.paginator.count|pluralize }}
+    </p>
+  {% endif %}
+
+  {% if products %}
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 sm:gap-7">
+      {% for product in products %}
+        {% include "store/_product_card.html" %}
+      {% endfor %}
+    </div>
+
+    {% if page_obj.paginator.num_pages > 1 %}
+      <nav class="flex items-center justify-center gap-3 mt-16" aria-label="Pagination">
+        {% if page_obj.has_previous %}
+          <a href="?{% if base_querystring %}{{ base_querystring }}&{% endif %}page={{ page_obj.previous_page_number }}"
+             class="btn-ink-outline text-sm px-4 py-2">← Prev</a>
+        {% endif %}
+        <span class="text-sm text-ink/60 px-2">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+          <a href="?{% if base_querystring %}{{ base_querystring }}&{% endif %}page={{ page_obj.next_page_number }}"
+             class="btn-ink-outline text-sm px-4 py-2">Next →</a>
+        {% endif %}
+      </nav>
+    {% endif %}
+  {% else %}
+    <div class="text-center py-20">
+      <div class="seal mx-auto mb-6" style="--seal-size:3.5rem;"><span class="seal-text">?</span></div>
+      <p class="font-display text-lg text-ink mb-2">
+        {% if search_query %}No products matched "{{ search_query }}".{% elif page_obj.paginator.count %}No products match these filters.{% else %}No products here yet.{% endif %}
+      </p>
+      <p class="text-ink/60 mb-6">Try browsing another category, adjusting your filters, or message us directly on WhatsApp.</p>
+      <a href="{{ GENERAL_WHATSAPP_LINK }}" target="_blank" rel="noopener" class="btn-gold-outline">Chat on WhatsApp</a>
+    </div>
+  {% endif %}
+</section>
+{% endblock %}
+
+{% block whatsapp_fab %}{% endblock %}
+

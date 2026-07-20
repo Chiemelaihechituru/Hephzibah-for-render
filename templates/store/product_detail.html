@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% load static store_extras %}
+
+{% block meta_description %}
+<meta name="description" content="{{ product.name }} — {{ product.price|naira }} at {{ BUSINESS_NAME }}.{% if product.description %} {{ product.description|truncatewords:20 }}{% endif %}">
+{% endblock %}
+
+{% block og_tags %}
+<meta property="og:type" content="product">
+<meta property="og:site_name" content="{{ BUSINESS_NAME }}">
+<meta property="og:title" content="{{ product.name }} · {{ BUSINESS_NAME }}">
+<meta property="og:description" content="{{ product.price|naira }} — {{ product.category.name }} at {{ BUSINESS_NAME }}.">
+<meta property="og:url" content="{{ request.build_absolute_uri }}">
+{% with first_image=product.images.first %}
+<meta property="og:image" content="{% if first_image %}{{ request.scheme }}://{{ request.get_host }}{{ first_image.image.url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{% static 'images/logo.png' %}{% endif %}">
+{% endwith %}
+<meta property="product:price:amount" content="{{ product.price }}">
+<meta property="product:price:currency" content="NGN">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ product.name }} · {{ BUSINESS_NAME }}">
+<meta name="twitter:description" content="{{ product.price|naira }} — {{ product.category.name }} at {{ BUSINESS_NAME }}.">
+{% endblock %}
+
+{% block extra_head %}
+<script type="application/ld+json">{{ product_jsonld|safe }}</script>
+{% endblock %}
+
+{% block content %}
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+  <!-- Breadcrumb -->
+  <nav class="text-xs text-ink/50 mb-8 flex flex-wrap gap-1">
+    <a href="{% url 'store:home' %}" class="hover:text-gold">Home</a>
+    <span>/</span>
+    <a href="{% url 'store:category_detail' product.category.slug %}" class="hover:text-gold">{{ product.category.name }}</a>
+    <span>/</span>
+    <span class="text-ink/80">{{ product.name }}</span>
+  </nav>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
+
+    <!-- ============ GALLERY ============ -->
+    <div>
+      <div class="product-image-wrap rounded-xl border border-gold/25" style="aspect-ratio:4/5;">
+        {% if product.is_sold_out %}<span class="stamp-sold">Sold Out</span>{% endif %}
+        {% with first_image=product.images.first %}
+          <img id="gallery-main-image"
+               src="{% if first_image %}{{ first_image.image.url }}{% endif %}"
+               alt="{{ product.name }}" class="w-full h-full object-cover rounded-xl">
+        {% endwith %}
+      </div>
+      {% if product.images.count > 1 %}
+        <div class="flex gap-3 mt-4 flex-wrap">
+          {% for img in product.images.all %}
+            <button type="button" class="gallery-thumb w-16 h-16 rounded-lg overflow-hidden border border-gold/30 {% if forloop.first %}ring-2 ring-gold{% endif %}" data-full="{{ img.image.url }}">
+              <img src="{{ img.image.url }}" alt="{{ img.alt_text|default:product.name }}" class="w-full h-full object-cover">
+            </button>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- ============ DETAILS + ORDER FORM ============ -->
+    <div>
+      <p class="text-xs tracking-[0.25em] uppercase text-gold mb-2">{{ product.category.name }} · {{ product.get_gender_display }}</p>
+      <h1 class="font-display text-3xl sm:text-4xl text-ink mb-4">{{ product.name }}</h1>
+
+      <div class="flex items-center gap-3 mb-6">
+        <span class="price-pill text-base">{{ product.price|naira }}</span>
+        {% if product.is_on_sale %}
+          <span class="line-through text-ink/40">{{ product.compare_at_price|naira }}</span>
+        {% endif %}
+      </div>
+
+      {% if product.stock_note %}
+        <p class="text-sm text-oxblood mb-4">{{ product.stock_note }}</p>
+      {% endif %}
+
+      {% if product.description %}
+        <p class="text-ink/70 leading-relaxed mb-8">{{ product.description }}</p>
+      {% endif %}
+
+      {% if product.is_sold_out %}
+        <div class="ledger-panel p-6 text-center">
+          <p class="font-display text-lg text-oxblood mb-2">This piece is currently sold out</p>
+          <p class="text-sm text-ink/60 mb-5">Message us on WhatsApp and we'll let you know if — or when — it's back.</p>
+          <a href="{{ GENERAL_WHATSAPP_LINK }}" target="_blank" rel="noopener" class="btn-gold-outline">Ask About Restock</a>
+        </div>
+      {% else %}
+        <div class="ledger-panel p-6">
+          <h2 class="font-display text-base tracking-wide text-ink mb-5">Order on WhatsApp</h2>
+          <form method="post">
+            {% csrf_token %}
+            {% if form.non_field_errors %}
+              <div class="text-oxblood text-sm mb-4">{{ form.non_field_errors }}</div>
+            {% endif %}
+
+            <div class="form-field">
+              <label for="id_quantity">Quantity</label>
+              <div class="flex items-center gap-3">
+                <button type="button" id="qty-minus" class="w-9 h-9 rounded-full border border-gold/50 text-ink hover:bg-gold/10">−</button>
+                {{ form.quantity }}
+                <button type="button" id="qty-plus" class="w-9 h-9 rounded-full border border-gold/50 text-ink hover:bg-gold/10">+</button>
+              </div>
+              {{ form.quantity.errors }}
+            </div>
+
+            <div class="form-field">
+              <label for="{{ form.customer_name.id_for_label }}">{{ form.customer_name.label }}</label>
+              {{ form.customer_name }}
+              {{ form.customer_name.errors }}
+            </div>
+
+            <div class="form-field">
+              <label for="{{ form.phone_number.id_for_label }}">{{ form.phone_number.label }}</label>
+              {{ form.phone_number }}
+              {{ form.phone_number.errors }}
+            </div>
+
+            <div class="form-field">
+              <label for="{{ form.address.id_for_label }}">{{ form.address.label }}</label>
+              {{ form.address }}
+              {{ form.address.errors }}
+            </div>
+
+            <div class="form-field">
+              <label for="{{ form.note.id_for_label }}">{{ form.note.label }}</label>
+              {{ form.note }}
+              {{ form.note.errors }}
+            </div>
+
+            <button type="submit" class="btn-gold w-full mt-2">Order on WhatsApp</button>
+            <p class="text-xs text-ink/50 mt-3 text-center">
+              We'll save your order details, then take you straight to WhatsApp
+              to confirm and receive payment instructions.
+            </p>
+          </form>
+        </div>
+      {% endif %}
+
+      <a href="{% url 'store:category_detail' product.category.slug %}" class="inline-flex items-center gap-2 text-sm text-ink/60 hover:text-gold mt-6">
+        ← Back to {{ product.category.name }}
+      </a>
+    </div>
+  </div>
+</section>
+
+{% if related_products %}
+<section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 border-t border-gold/15">
+  <h2 class="font-display text-xl text-ink mb-6">You may also like</h2>
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-5 sm:gap-7">
+    {% for product in related_products %}
+      {% include "store/_product_card.html" %}
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+{% endblock %}
