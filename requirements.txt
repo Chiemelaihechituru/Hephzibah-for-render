@@ -1,0 +1,11 @@
+android==1.0
+annotated-types==0.7.0
+Django==5.0.7
+Pillow==10.4.0
+python-decouple==3.8
+gunicorn==22.0.0
+whitenoise==6.7.0
+uvicorn==0.51.0
+dj-database-url==3.1.2
+psycopg2-binary
+
